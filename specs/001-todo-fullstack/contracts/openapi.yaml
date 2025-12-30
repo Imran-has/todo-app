@@ -1,0 +1,387 @@
+openapi: 3.1.0
+info:
+  title: Todo Full-Stack API
+  description: REST API for multi-user task management
+  version: 1.0.0
+  contact:
+    name: API Support
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.example.com
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/{user_id}/tasks:
+    get:
+      summary: List all tasks
+      description: Retrieve all tasks for the authenticated user
+      operationId: listTasks
+      tags:
+        - Tasks
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - name: status
+          in: query
+          description: Filter by completion status
+          schema:
+            type: string
+            enum: [all, pending, completed]
+            default: all
+        - name: sort
+          in: query
+          description: Sort field
+          schema:
+            type: string
+            enum: [created, title]
+            default: created
+        - name: order
+          in: query
+          description: Sort order
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        '200':
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      summary: Create a task
+      description: Create a new task for the authenticated user
+      operationId: createTask
+      tags:
+        - Tasks
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreate'
+      responses:
+        '201':
+          description: Task created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/{user_id}/tasks/{task_id}:
+    get:
+      summary: Get task details
+      description: Retrieve a specific task by ID
+      operationId: getTask
+      tags:
+        - Tasks
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/taskId'
+      responses:
+        '200':
+          description: Task details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Update a task
+      description: Update an existing task's title and description
+      operationId: updateTask
+      tags:
+        - Tasks
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/taskId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+      responses:
+        '200':
+          description: Task updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete a task
+      description: Permanently delete a task
+      operationId: deleteTask
+      tags:
+        - Tasks
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/taskId'
+      responses:
+        '204':
+          description: Task deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/{user_id}/tasks/{task_id}/complete:
+    patch:
+      summary: Toggle task completion
+      description: Toggle the completion status of a task
+      operationId: toggleTaskComplete
+      tags:
+        - Tasks
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/taskId'
+      responses:
+        '200':
+          description: Task completion toggled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /health:
+    get:
+      summary: Health check
+      description: Check if the API is running
+      operationId: healthCheck
+      tags:
+        - System
+      security: []
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from Better Auth
+
+  parameters:
+    userId:
+      name: user_id
+      in: path
+      required: true
+      description: The authenticated user's ID (must match token)
+      schema:
+        type: string
+        maxLength: 255
+
+    taskId:
+      name: task_id
+      in: path
+      required: true
+      description: The task's ID
+      schema:
+        type: integer
+        minimum: 1
+
+  schemas:
+    Task:
+      type: object
+      description: A task belonging to a user
+      required:
+        - id
+        - title
+        - completed
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+          description: Unique task identifier
+          example: 1
+        title:
+          type: string
+          description: Task title
+          minLength: 1
+          maxLength: 200
+          example: "Buy groceries"
+        description:
+          type: string
+          nullable: true
+          description: Optional task description
+          maxLength: 1000
+          example: "Milk, eggs, bread"
+        completed:
+          type: boolean
+          description: Completion status
+          default: false
+          example: false
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp (UTC)
+          example: "2025-12-24T10:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp (UTC)
+          example: "2025-12-24T10:00:00Z"
+
+    TaskCreate:
+      type: object
+      description: Request body for creating a task
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          description: Task title
+          minLength: 1
+          maxLength: 200
+          example: "Buy groceries"
+        description:
+          type: string
+          description: Optional task description
+          maxLength: 1000
+          example: "Milk, eggs, bread"
+
+    TaskUpdate:
+      type: object
+      description: Request body for updating a task
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          description: Task title
+          minLength: 1
+          maxLength: 200
+          example: "Buy groceries and supplies"
+        description:
+          type: string
+          nullable: true
+          description: Task description (null to clear)
+          maxLength: 1000
+          example: "Milk, eggs, bread, paper towels"
+
+    TaskListResponse:
+      type: object
+      description: Response containing list of tasks
+      required:
+        - tasks
+        - total
+      properties:
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+        total:
+          type: integer
+          description: Total number of tasks
+          example: 1
+
+    Error:
+      type: object
+      description: Error response
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: Human-readable error message
+          example: "Not authenticated"
+
+  responses:
+    BadRequest:
+      description: Bad request - validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            titleRequired:
+              value:
+                detail: "Title is required"
+            titleTooLong:
+              value:
+                detail: "Title must be between 1 and 200 characters"
+
+    Unauthorized:
+      description: Unauthorized - missing or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            detail: "Not authenticated"
+
+    Forbidden:
+      description: Forbidden - accessing another user's resources
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            detail: "Access denied"
+
+    NotFound:
+      description: Not found - resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            detail: "Task not found"
+
+tags:
+  - name: Tasks
+    description: Task management operations
+  - name: System
+    description: System health and status
