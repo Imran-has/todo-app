@@ -2,34 +2,285 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import Inter font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 255, 255, 255;
-  --background-end-rgb: 255, 255, 255;
+  /* Color tokens */
+  --foreground-rgb: 15, 23, 42;
+  --background-start-rgb: 248, 250, 252;
+  --background-end-rgb: 241, 245, 249;
+
+  /* Primary brand gradient */
+  --gradient-primary: linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #0369a1 100%);
+  --gradient-accent: linear-gradient(135deg, #d946ef 0%, #c026d3 100%);
+  --gradient-success: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+
+  /* Subtle backgrounds */
+  --bg-subtle: rgba(248, 250, 252, 0.8);
+  --bg-muted: rgba(241, 245, 249, 0.9);
+
+  /* Border colors */
+  --border-subtle: rgba(226, 232, 240, 0.8);
+  --border-muted: rgba(203, 213, 225, 0.6);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+    --foreground-rgb: 248, 250, 252;
+    --background-start-rgb: 15, 23, 42;
+    --background-end-rgb: 30, 41, 59;
+
+    --bg-subtle: rgba(30, 41, 59, 0.8);
+    --bg-muted: rgba(51, 65, 85, 0.9);
+
+    --border-subtle: rgba(51, 65, 85, 0.8);
+    --border-muted: rgba(71, 85, 105, 0.6);
   }
+}
+
+/* Base styles */
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+    180deg,
+    rgb(var(--background-start-rgb)) 0%,
+    rgb(var(--background-end-rgb)) 100%
+  );
+  background-attachment: fixed;
   min-height: 100vh;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom utility classes */
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.6);
+}
+
+/* Component layer */
+@layer components {
+  /* Glass morphism card */
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-xl border border-white/20 shadow-soft;
+  }
+
+  /* Primary button with gradient */
+  .btn-primary {
+    @apply relative overflow-hidden px-5 py-2.5 rounded-xl font-medium text-white
+           bg-gradient-to-r from-primary-500 via-primary-600 to-primary-700
+           hover:from-primary-600 hover:via-primary-700 hover:to-primary-800
+           focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed
+           transition-all duration-200 ease-smooth
+           shadow-soft hover:shadow-soft-lg hover:-translate-y-0.5
+           active:translate-y-0 active:shadow-soft;
+  }
+
+  .btn-primary::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0
+           -translate-x-full transition-transform duration-500;
+  }
+
+  .btn-primary:hover::before {
+    @apply translate-x-full;
+  }
+
+  /* Secondary/Ghost button */
+  .btn-secondary {
+    @apply px-4 py-2 rounded-xl font-medium text-slate-600
+           bg-slate-100 hover:bg-slate-200
+           focus:outline-none focus:ring-2 focus:ring-slate-300/50 focus:ring-offset-2
+           transition-all duration-200 ease-smooth
+           hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  /* Danger button */
+  .btn-danger {
+    @apply px-4 py-2 rounded-xl font-medium text-danger-600
+           bg-danger-50 hover:bg-danger-100
+           focus:outline-none focus:ring-2 focus:ring-danger-300/50 focus:ring-offset-2
+           transition-all duration-200 ease-smooth;
+  }
+
+  /* Icon button */
+  .btn-icon {
+    @apply p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100
+           focus:outline-none focus:ring-2 focus:ring-slate-300/50
+           transition-all duration-200;
+  }
+
+  .btn-icon-danger {
+    @apply p-2 rounded-lg text-slate-400 hover:text-danger-600 hover:bg-danger-50
+           focus:outline-none focus:ring-2 focus:ring-danger-300/50
+           transition-all duration-200;
+  }
+
+  /* Modern input */
+  .input-modern {
+    @apply w-full px-4 py-3 rounded-xl
+           bg-white border-2 border-slate-200
+           text-slate-900 placeholder:text-slate-400
+           focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10
+           transition-all duration-200 ease-smooth
+           shadow-inner-soft;
+  }
+
+  /* Task card styles */
+  .task-card {
+    @apply relative p-4 bg-white rounded-2xl border border-slate-100
+           shadow-soft hover:shadow-soft-lg
+           transition-all duration-300 ease-smooth
+           hover:-translate-y-0.5;
+  }
+
+  .task-card-completed {
+    @apply bg-slate-50/80 border-slate-100;
+  }
+
+  /* Custom checkbox */
+  .checkbox-modern {
+    @apply relative w-6 h-6 rounded-lg border-2 border-slate-300
+           bg-white cursor-pointer
+           transition-all duration-200 ease-smooth
+           hover:border-primary-400
+           focus:outline-none focus:ring-2 focus:ring-primary-500/30;
+  }
+
+  .checkbox-modern:checked {
+    @apply bg-gradient-to-br from-primary-500 to-primary-600 border-primary-500;
+  }
+
+  /* Filter pill buttons */
+  .filter-pill {
+    @apply px-4 py-2 rounded-full text-sm font-medium
+           transition-all duration-200 ease-smooth;
+  }
+
+  .filter-pill-active {
+    @apply bg-primary-500 text-white shadow-soft;
+  }
+
+  .filter-pill-inactive {
+    @apply bg-slate-100 text-slate-600 hover:bg-slate-200;
+  }
+
+  /* Skeleton loading */
+  .skeleton {
+    @apply relative overflow-hidden bg-slate-200 rounded-lg;
+  }
+
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0 -translate-x-full
+           bg-gradient-to-r from-transparent via-white/60 to-transparent
+           animate-shimmer;
+    background-size: 200% 100%;
+  }
+
+  /* Badge styles */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-primary {
+    @apply bg-primary-100 text-primary-700;
+  }
+
+  .badge-success {
+    @apply bg-success-100 text-success-700;
+  }
+
+  .badge-warning {
+    @apply bg-warning-100 text-warning-700;
+  }
+}
+
+/* Utility layer */
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Gradient text */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-400;
+  }
+
+  .text-gradient-accent {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-accent-500 to-primary-500;
+  }
+
+  /* Backdrop blur variants */
+  .backdrop-blur-xs {
+    backdrop-filter: blur(2px);
+  }
+
+  /* Hide scrollbar but allow scrolling */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Focus visible ring */
+  .focus-ring {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2;
+  }
+
+  /* Stagger animation delay utilities */
+  .stagger-1 { animation-delay: 50ms; }
+  .stagger-2 { animation-delay: 100ms; }
+  .stagger-3 { animation-delay: 150ms; }
+  .stagger-4 { animation-delay: 200ms; }
+  .stagger-5 { animation-delay: 250ms; }
+}
+
+/* Custom checkbox checkmark animation */
+@keyframes checkmark {
+  0% {
+    stroke-dashoffset: 24;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.checkmark-path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: checkmark 0.3s ease-out forwards;
+}
+
+/* Subtle gradient mesh background */
+.bg-mesh {
+  background-image:
+    radial-gradient(at 40% 20%, rgba(14, 165, 233, 0.08) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, rgba(217, 70, 239, 0.05) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, rgba(34, 197, 94, 0.05) 0px, transparent 50%),
+    radial-gradient(at 80% 50%, rgba(14, 165, 233, 0.05) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(217, 70, 239, 0.05) 0px, transparent 50%);
 }

@@ -1,10 +1,13 @@
 """Task model for todo items."""
-from datetime import datetime
-from typing import Optional, TYPE_CHECKING
+from datetime import datetime, date
+from typing import Optional, Literal, TYPE_CHECKING
 from sqlmodel import SQLModel, Field, Relationship
 
 if TYPE_CHECKING:
     from .user import User
+
+# Priority type for validation
+PriorityType = Literal["high", "medium", "low"]
 
 
 class Task(SQLModel, table=True):
@@ -19,6 +22,8 @@ class Task(SQLModel, table=True):
     title: str = Field(min_length=1, max_length=200)
     description: Optional[str] = Field(default=None, max_length=1000)
     completed: bool = Field(default=False, index=True)
+    priority: str = Field(default="medium", max_length=10)  # high, medium, low
+    due_date: Optional[date] = Field(default=None)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 

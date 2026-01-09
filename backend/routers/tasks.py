@@ -88,6 +88,8 @@ async def create_task(
         user_id=current_user.user_id,
         title=task_data.title,
         description=task_data.description,
+        priority=task_data.priority,
+        due_date=task_data.due_date,
     )
     session.add(task)
     await session.commit()
@@ -138,6 +140,8 @@ async def update_task(
 
     task.title = task_data.title
     task.description = task_data.description
+    task.priority = task_data.priority
+    task.due_date = task_data.due_date
     task.touch()  # Update updated_at
 
     await session.commit()
