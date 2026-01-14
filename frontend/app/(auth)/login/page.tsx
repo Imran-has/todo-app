@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { signIn } from "@/lib/auth-client";
+import { signIn, setAuthToken } from "@/lib/auth-client";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -30,6 +30,13 @@ export default function LoginPage() {
           setError(errorMessage);
         }
       } else {
+        // Save token if available in response
+        if (result.data?.token) {
+          setAuthToken(result.data.token);
+        } else if (result.data?.session?.token) {
+          setAuthToken(result.data.session.token);
+        }
+        console.log("[Login] Success, result:", result.data);
         router.push("/tasks");
       }
     } catch (err) {

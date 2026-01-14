@@ -10,7 +10,7 @@ export const authClient = createAuthClient({
       const authToken = ctx.response.headers.get("set-auth-token");
       if (authToken && typeof window !== "undefined") {
         localStorage.setItem(TOKEN_KEY, authToken);
-        console.log("[Auth] Token saved from header");
+        console.log("[Auth] Token saved from header:", authToken.substring(0, 20) + "...");
       }
     },
   },
@@ -19,30 +19,49 @@ export const authClient = createAuthClient({
 export const { signIn, signUp, signOut, useSession } = authClient;
 
 // Helper to get bearer token for API calls
-// Falls back to session token if bearer token not available
 export function getBearerToken(): string | null {
   if (typeof window === "undefined") return null;
 
-  // First try bearer token
+  // First try bearer token from localStorage
   const bearerToken = localStorage.getItem(TOKEN_KEY);
   if (bearerToken) {
+    console.log("[Auth] Using localStorage token");
     return bearerToken;
   }
 
-  // Fallback: try to get session token from better-auth cookie name pattern
-  // Better Auth stores session in a cookie, we can read the token from there
+  // Fallback: try to get session token from better-auth cookies
   const cookies = document.cookie.split(";");
   for (const cookie of cookies) {
-    const [name, value] = cookie.trim().split("=");
-    if (name === "better-auth.session_token" || name === "__Secure-better-auth.session_token") {
+    const trimmed = cookie.trim();
+    const eqIndex = trimmed.indexOf("=");
+    if (eqIndex === -1) continue;
+
+    const name = trimmed.substring(0, eqIndex);
+    const value = trimmed.substring(eqIndex + 1);
+
+    // Better Auth cookie names
+    if (
+      name === "better-auth.session_token" ||
+      name === "__Secure-better-auth.session_token" ||
+      name === "better-auth_session_token"
+    ) {
       if (value) {
-        console.log("[Auth] Using session cookie as token");
-        return value;
+        console.log("[Auth] Using session cookie:", name);
+        return decodeURIComponent(value);
       }
     }
   }
 
+  console.log("[Auth] No token found. Cookies:", document.cookie);
   return null;
+}
+
+// Store token manually (call after successful login)
+export function setAuthToken(token: string) {
+  if (typeof window !== "undefined" && token) {
+    localStorage.setItem(TOKEN_KEY, token);
+    console.log("[Auth] Token manually saved");
+  }
 }
 
 // Clear token on sign out
