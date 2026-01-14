@@ -20,12 +20,31 @@ export default function LoginPage() {
     try {
       const result = await signIn.email({ email, password });
       if (result.error) {
-        setError(result.error.message || "Login failed");
+        // Provide more specific error messages
+        const errorMessage = result.error.message || "Login failed";
+        if (result.error.status === 401) {
+          setError("Invalid email or password");
+        } else if (result.error.status === 429) {
+          setError("Too many attempts. Please try again later.");
+        } else {
+          setError(errorMessage);
+        }
       } else {
         router.push("/tasks");
       }
-    } catch {
-      setError("An unexpected error occurred");
+    } catch (err) {
+      // Log error for debugging (visible in browser console)
+      console.error("Login error:", err);
+      if (err instanceof Error) {
+        // Check for network errors
+        if (err.message.includes("fetch") || err.message.includes("network")) {
+          setError("Network error. Please check your connection.");
+        } else {
+          setError(`Login error: ${err.message}`);
+        }
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
