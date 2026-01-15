@@ -33,8 +33,6 @@ export default function LoginPage() {
         // Save token if available in response
         if (result.data?.token) {
           setAuthToken(result.data.token);
-        } else if (result.data?.session?.token) {
-          setAuthToken(result.data.session.token);
         }
         console.log("[Login] Success, result:", result.data);
         router.push("/tasks");

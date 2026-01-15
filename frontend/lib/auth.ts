@@ -38,16 +38,5 @@ export const auth = betterAuth({
       maxAge: 60 * 5, // 5 minutes
     },
   },
-  plugins: [
-    bearer({
-      // Expose token in response header for client storage
-      exposeAccessToken: true,
-    }),
-  ],
-  advanced: {
-    // Ensure cross-origin cookies work
-    crossSubDomainCookies: {
-      enabled: false, // Different domains, not subdomains
-    },
-  },
+  plugins: [bearer()],
 });
